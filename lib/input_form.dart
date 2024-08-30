@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import "package:flutter_jissenn_08/data.dart";
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_jissenn_08/app_notifier_provider.dart";
+//import "package:flutter_jissenn_08/data.dart";
+//import 'dart:convert';
+//import 'package:http/http.dart' as http;
 
 // 入力状態のウィジェットを実装する
-class InputForm extends StatefulWidget {
+class InputForm extends ConsumerStatefulWidget {
   const InputForm({super.key});
 
   @override
-  State<InputForm> createState() => _InputFormState();
+  ConsumerState<InputForm> createState() => _InputFormState();
 }
 
-class _InputFormState extends State<InputForm> {
+class _InputFormState extends ConsumerState<InputForm> {
 
   final _formKey = GlobalKey<FormState>();
   final _textEditingController = TextEditingController();
@@ -48,35 +50,10 @@ class _InputFormState extends State<InputForm> {
               if (formState == null || !formState.validate()) {
                 return;
               }
-
-              final url = Uri.parse('https://labs.goo.ne.jp/api/hiragana');
-              final headers = {'Content-Type': 'application/json'};
-
-              final request = Request(
-                appId: const String.fromEnvironment('appId'),
-                sentence: _textEditingController.text,
-              );
-
-              try {
-                final result = await http.post(
-                  url,
-                  headers: headers,
-                  body: jsonEncode(request.toJson()),
-                );
-
-                if (result.statusCode == 200) {
-                  final response = Response.fromJson(
-                    jsonDecode(result.body) as Map<String, dynamic>,
-                  );
-                  debugPrint('変換結果: ${response.converted}');
-                } else {
-                  // エラーハンドリング
-                  debugPrint('APIリクエストエラー: ${result.statusCode}');
-                }
-              } catch (e) {
-                // エラーハンドリング
-                debugPrint('APIリクエストエラー: $e');
-              }
+              final sentence = _textEditingController.text;
+              await ref
+                  .read(appNotifierProvider.notifier)
+                  .convert(sentence);
             },
             child: const Text(
               '変換',
